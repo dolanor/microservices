@@ -2,9 +2,13 @@
 
 - [x] Create router
 - [x] Create auth service
-  - [ ] Add the profile view for the user with data from data service
-- [ ] Create todo service
-- [ ] Create data service
+  - [x] Add the profile view for the user with data from data service
+  - [x] Use server package functionality
+- [x] Create todo service
+- [x] Create data service
+- [x] Factorize server function
+- [ ] Document the API
+- [ ] Test the services
 
 # Bonus
 

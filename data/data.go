@@ -14,7 +14,6 @@ func getUserTodoList(c *gin.Context) {
 	}
 
 	var username string
-
 	c.BindJSON(&username)
 	if todo, ok := todos[username]; ok {
 		c.JSON(http.StatusOK, todo)
@@ -28,9 +27,9 @@ func getUserProfile(c *gin.Context) {
 		"dolanor": {"dolanor", "Tanguy Herrmann", time.Date(1983, 01, 01, 0, 0, 0, 0, time.UTC)},
 	}
 
-	var profile models.UserProfile
-	c.BindJSON(&profile)
-	if user, ok := users[profile.Username]; ok {
+	var username string
+	c.BindJSON(&username)
+	if user, ok := users[username]; ok {
 		c.JSON(http.StatusOK, user)
 	} else {
 		c.AbortWithStatus(http.StatusNotFound)

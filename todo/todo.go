@@ -15,19 +15,25 @@ func displayTodo(c *gin.Context) {
 	data, err := server.QueryDataService(c)
 	if err != nil {
 		switch e := err.(type) {
-		case jwt.ValidationError:
+		case *jwt.ValidationError:
 			if e.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
 				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+				return
 			}
 		case error:
 			switch err {
 			case errors.ErrUnauthorized:
 				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+				return
 			case errors.ErrConnectingEndpoint:
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			case errors.ErrDataNotFound:
-				c.HTML(http.StatusOK, "todo.tmpl", gin.H{"title": "TODO", "todo": nil})
+				c.HTML(http.StatusNotFound, "todo.tmpl", gin.H{"title": "TODO", "todo": nil})
+				return
+			default:
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
 			}
 		default:
 			c.AbortWithError(http.StatusInternalServerError, err)
