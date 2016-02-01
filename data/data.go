@@ -8,7 +8,19 @@ import (
 )
 
 func getUserTodoList(c *gin.Context) {
+	todos := models.Todos{
+		"dolanor": {"Make the bed", "Eat", "Change the world", "Sleep"},
+		"tanguy":  {"Code", "Prepare food", "Read"},
+	}
 
+	var username string
+
+	c.BindJSON(&username)
+	if todo, ok := todos[username]; ok {
+		c.JSON(http.StatusOK, todo)
+	} else {
+		c.AbortWithStatus(http.StatusNotFound)
+	}
 }
 
 func getUserProfile(c *gin.Context) {
@@ -29,7 +41,7 @@ func main() {
 	r := gin.Default()
 
 	r.POST("/user/profile", getUserProfile)
-	r.GET("/todo/", getUserTodoList)
+	r.POST("/todo", getUserTodoList)
 
 	r.Run(":8300")
 }

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ .title }}</title>
+    <head>
+    <body>
+        <h1>{{ .title }}</h1>
+        {{ with .todo  }}
+            <ul>
+            {{ range . }}
+                <li>{{.}}</li>
+            {{ end }}
+            </ul>
+        {{ else }}
+        <div>This user has no TODO information. Yet.</div>
+        {{ end }}
+    </body>
+</html>
