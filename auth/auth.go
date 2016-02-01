@@ -121,10 +121,8 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	auth := r.Group("/user")
-	auth.GET("/login", displayLogin)
-	auth.POST("/login", postLogin)
-
+	r.GET("/user/login", displayLogin)
+	r.POST("/user/login", postLogin)
 	r.GET("/user/profile", displayProfile)
 
 	r.Run(":8100")
