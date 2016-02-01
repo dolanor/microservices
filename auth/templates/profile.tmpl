@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ .title }}</title>
+    <head>
+    <body>
+        <h1>{{ .title }}</h1>
+        {{ with .profile  }}
+        <div>Username: {{ .Username }}</div>
+        <div>Fullname: {{ .Fullname }}</div>
+        <div>Birthday: {{ .Birthday }}</div>
+        {{ else }}
+        <div>This user has no profile information. Yet.</div>
+        {{ end }}
+    </body>
+</html>

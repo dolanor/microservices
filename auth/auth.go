@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	//	jwt_gin "github.com/gin-gonic/contrib/jwt"
+	"github.com/dolanor/microservices/models"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -20,12 +25,20 @@ func displayLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "login_form.tmpl", gin.H{"title": "Log in"})
 }
 
-// Single secret to do simple signing
-var symmetricKey = "symmetrickey"
+var (
+	// Single secret to do simple token signing
+	symmetricKey = "symmetrickey"
+	// password for the cookie store
+	cookiesecret = "cookiesecret"
+	// url to the DB Accessor. Need to replace with service discovery.
+	dataServiceURL = "http://localhost:8300"
+)
 
 func postLogin(c *gin.Context) {
+	// Temporary storage
 	credentials := map[string]string{
 		"dolanor": "test",
+		"tanguy":  "pass",
 	}
 
 	var form Login
@@ -44,7 +57,7 @@ func postLogin(c *gin.Context) {
 		// sign the token
 		tokenString, err := token.SignedString([]byte(symmetricKey))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": "Couldn't generate the jwt token"})
+			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 
 		// save the tokenstring in the cookiestore (maybe use localstorage?)
@@ -52,9 +65,9 @@ func postLogin(c *gin.Context) {
 		session.Set("token", tokenString)
 		session.Save()
 
-		c.JSON(http.StatusOK, gin.H{"status": "You are logged in"})
+		c.Redirect(301, "/user/profile")
 	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "Unauthorized access"})
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
 
@@ -75,26 +88,74 @@ func displayProfile(c *gin.Context) {
 	session := sessions.Default(c)
 	tokenString, ok := session.Get("token").(string)
 	if !ok {
-		c.JSON(http.StatusExpectationFailed, gin.H{"status": "Couldn't get the token."})
+		c.AbortWithError(http.StatusUnauthorized, errors.New("Token not found in sessions cookiestore"))
 		return
 	}
 
 	token, err := jwt.Parse(tokenString, verifyToken)
 	if err != nil {
-		c.JSON(http.StatusExpectationFailed, gin.H{"status": "Token invalid: " + fmt.Sprintf("%v", err)})
+		c.AbortWithError(http.StatusUnauthorized, err)
+		c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 		return
 	}
 
 	if token.Claims["auth"].(bool) {
 		// Connect to DB service and lookup profile info for token.Claims["name"]
-		c.JSON(http.StatusOK, gin.H{"status": "you will see great profile information"})
+		client := &http.Client{}
+		r := c.Request
+		u, err := url.ParseRequestURI(r.RequestURI)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		user := models.UserProfile{Username: token.Claims["name"].(string)}
+		jsonuser, err := json.Marshal(user)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", dataServiceURL, u.Path), bytes.NewBuffer(jsonuser))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		req.Header.Set("content-type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		defer resp.Body.Close()
+
+		// If the data services doesn't have any profile associated with that
+		// user
+		if resp.StatusCode == 404 {
+			//c.AbortWithStatus(resp.StatusCode)
+			c.HTML(http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "profile": nil})
+			return
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		var profile models.UserProfile
+		err = json.Unmarshal(body, &profile)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "profile": profile})
 	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "Unauthorized access"})
+		c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 	}
 }
-
-// password for the cookie store
-var cookiesecret = "cookiesecret"
 
 func main() {
 	r := gin.Default()
@@ -108,11 +169,7 @@ func main() {
 	auth.GET("/login", displayLogin)
 	auth.POST("/login", postLogin)
 
-	profile := r.Group("/user/profile")
-	// Could use this if we do request from javascript with custom header
-	// Authorize: Bearer <token>
-	//profile.Use(jwt_gin.Auth(symmetricKey))
-	profile.GET("/", displayProfile)
+	r.GET("/user/profile", displayProfile)
 
 	r.Run(":8100")
 }
