@@ -1,11 +1,11 @@
-package server
+package helper
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/dolanor/microservices/errors"
+	"github.com/dolanor/microservices/api"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -19,7 +19,7 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 	session := sessions.Default(c)
 	tokenString, ok := session.Get("token").(string)
 	if !ok {
-		return []byte{}, errors.ErrTokenNotFound
+		return []byte{}, api.ErrTokenNotFound
 	}
 
 	token, err := jwt.Parse(tokenString, verifyToken)
@@ -28,7 +28,7 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 	}
 
 	if !token.Claims["auth"].(bool) {
-		return []byte{}, errors.ErrUnauthorized
+		return []byte{}, api.ErrUnauthorized
 	}
 
 	// Connect to DB service and lookup profile info for token.Claims["name"]
@@ -41,12 +41,15 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 
 	var username string
 	if username, ok = token.Claims["name"].(string); !ok {
-		return []byte{}, errors.ErrTokenItemNotFound
+		return []byte{}, api.ErrTokenItemNotFound
+	}
+
+	if c.Param("username") != "" && c.Param("username") != username {
+		return []byte{}, api.ErrUnauthorized
 	}
 
 	jsonusername, err := json.Marshal(username)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
 		return []byte{}, err
 	}
 
@@ -58,13 +61,13 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 	req.Header.Set("content-type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return []byte{}, errors.ErrConnectingEndpoint
+		return []byte{}, api.ErrConnectingEndpoint
 	}
 	defer resp.Body.Close()
 
 	// If the data services doesn't have any profile associated with that user
 	if resp.StatusCode == 404 {
-		return []byte{}, errors.ErrDataNotFound
+		return []byte{}, api.ErrDataNotFound
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

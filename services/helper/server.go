@@ -1,3 +1,3 @@
-// Package server regroups functionnalities and helper functions for the
-// server for each microservices to interact together.
-package server
+// Package helper regroups functionnalities and helper functions for the
+// microservices to interact together.
+package helper

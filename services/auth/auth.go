@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/dolanor/microservices/errors"
-	"github.com/dolanor/microservices/models"
-	"github.com/dolanor/microservices/server"
+	"github.com/dolanor/microservices/api"
+	"github.com/dolanor/microservices/services/helper"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -44,7 +43,7 @@ func postLogin(c *gin.Context) {
 		token.Claims["auth"] = true
 
 		// sign the token
-		tokenString, err := token.SignedString([]byte(server.SymmetricKey))
+		tokenString, err := token.SignedString([]byte(helper.SymmetricKey))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
@@ -54,9 +53,9 @@ func postLogin(c *gin.Context) {
 		session.Set("token", tokenString)
 		session.Save()
 
-		c.Redirect(301, "/user/profile")
+		c.Redirect(301, "/user/"+form.Username)
 	} else {
-		c.Redirect(301, "/user/login")
+		c.Redirect(301, "/login")
 	}
 }
 
@@ -70,27 +69,27 @@ func verifyToken(token *jwt.Token) (interface{}, error) {
 		return nil, fmt.Errorf("Unexpected Signing method: %v", token.Header["alg"])
 	}
 	// return the key used for signing the token
-	return []byte(server.SymmetricKey), nil
+	return []byte(helper.SymmetricKey), nil
 }
 
 func displayProfile(c *gin.Context) {
-	data, err := server.QueryDataService(c)
+	data, err := helper.QueryDataService(c)
 	if err != nil {
 		switch e := err.(type) {
 		case *jwt.ValidationError:
 			if e.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
 				return
 			}
 		case error:
 			switch err {
-			case errors.ErrUnauthorized:
-				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+			case api.ErrUnauthorized:
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
 				return
-			case errors.ErrConnectingEndpoint:
+			case api.ErrConnectingEndpoint:
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
-			case errors.ErrDataNotFound:
+			case api.ErrDataNotFound:
 				c.HTML(http.StatusNotFound, "profile.tmpl", gin.H{"title": "Profile", "profile": nil})
 				return
 			default:
@@ -103,7 +102,7 @@ func displayProfile(c *gin.Context) {
 		}
 	}
 
-	var profile models.UserProfile
+	var profile api.User
 	err = json.Unmarshal(data, &profile)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -115,15 +114,15 @@ func displayProfile(c *gin.Context) {
 
 func main() {
 	r := gin.Default()
-	store := sessions.NewCookieStore([]byte(server.Cookiesecret))
+	store := sessions.NewCookieStore([]byte(helper.Cookiesecret))
 
 	r.Use(sessions.Sessions("tokens", store))
 
 	r.LoadHTMLGlob("templates/*")
 
-	r.GET("/user/login", displayLogin)
-	r.POST("/user/login", postLogin)
-	r.GET("/user/profile", displayProfile)
+	r.GET("/login", displayLogin)
+	r.POST("/login", postLogin)
+	r.GET("/user/:username", displayProfile)
 
 	r.Run(":8100")
 }

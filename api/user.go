@@ -1,11 +1,11 @@
-package models
+package api
 
 import (
 	"time"
 )
 
 // UserProfile contains information concerning the user
-type UserProfile struct {
+type User struct {
 	// Username is the unique name of a user.
 	// There can't be 2 same username on the service.
 	Username string `json:"username" binding:"required"`

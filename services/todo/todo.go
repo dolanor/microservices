@@ -3,32 +3,31 @@ package main
 import (
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/dolanor/microservices/errors"
-	"github.com/dolanor/microservices/models"
-	"github.com/dolanor/microservices/server"
+	"github.com/dolanor/microservices/api"
+	"github.com/dolanor/microservices/services/helper"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func displayTodo(c *gin.Context) {
-	data, err := server.QueryDataService(c)
+	data, err := helper.QueryDataService(c)
 	if err != nil {
 		switch e := err.(type) {
 		case *jwt.ValidationError:
 			if e.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
 				return
 			}
 		case error:
 			switch err {
-			case errors.ErrUnauthorized:
-				c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+			case api.ErrUnauthorized:
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
 				return
-			case errors.ErrConnectingEndpoint:
+			case api.ErrConnectingEndpoint:
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
-			case errors.ErrDataNotFound:
+			case api.ErrDataNotFound:
 				c.HTML(http.StatusNotFound, "todo.tmpl", gin.H{"title": "TODO", "todo": nil})
 				return
 			default:
@@ -41,7 +40,7 @@ func displayTodo(c *gin.Context) {
 		}
 	}
 
-	var todo models.Todo
+	var todo api.Todo
 	err = json.Unmarshal(data, &todo)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -53,7 +52,7 @@ func displayTodo(c *gin.Context) {
 
 func main() {
 	r := gin.Default()
-	store := sessions.NewCookieStore([]byte(server.Cookiesecret))
+	store := sessions.NewCookieStore([]byte(helper.Cookiesecret))
 
 	r.Use(sessions.Sessions("tokens", store))
 
