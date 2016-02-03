@@ -53,8 +53,7 @@ func postLogin(c *gin.Context) {
 		session.Set("token", tokenString)
 		session.Save()
 
-		c.Redirect(301, "/user/"+form.Username)
-		helper.GenResponse(c, http.StatusOK, "login_form.tmpl", gin.H{"title": "Log in"})
+		helper.GenResponse(c, http.StatusOK, "login_form.tmpl", gin.H{"title": "Log in", "data": form.Username, "username": form.Username})
 	} else {
 		helper.GenResponse(c, http.StatusUnauthorized, "login_form.tmpl", gin.H{"title": "Log in"})
 	}
@@ -110,7 +109,10 @@ func displayProfile(c *gin.Context) {
 		return
 	}
 
-	helper.GenResponse(c, http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "data": profile})
+	// If we're here, we can get these informations already without errors
+	token, _ := helper.GetTokenFromContext(c)
+	username, _ := helper.GetUsernameFromToken(token)
+	helper.GenResponse(c, http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "data": profile, "username": username})
 }
 
 func main() {

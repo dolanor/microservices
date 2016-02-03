@@ -25,16 +25,34 @@ func GenResponse(c *gin.Context, httpStatusCode int, template string, ginH map[s
 	c.HTML(httpStatusCode, template, ginH)
 }
 
-// QueryDataService is a helper function to access another microservice endpoint.
-// Currently, works for the DB Accessor. Might be extended for other services.
-func QueryDataService(c *gin.Context) ([]byte, error) {
+// GetTokenFromContext gets the token from the context's cookiestore
+func GetTokenFromContext(c *gin.Context) (*jwt.Token, error) {
 	session := sessions.Default(c)
 	tokenString, ok := session.Get("token").(string)
 	if !ok {
-		return []byte{}, api.ErrTokenNotFound
+		return nil, api.ErrTokenNotFound
 	}
 
 	token, err := jwt.Parse(tokenString, verifyToken)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+// GetUsernameFromToken extracts the name claim from the token
+func GetUsernameFromToken(token *jwt.Token) (string, error) {
+	username, ok := token.Claims["name"].(string)
+	if !ok {
+		return "", api.ErrTokenItemNotFound
+	}
+	return username, nil
+}
+
+// QueryDataService is a helper function to access another microservice endpoint.
+// Currently, works for the DB Accessor. Might be extended for other services.
+func QueryDataService(c *gin.Context) ([]byte, error) {
+	token, err := GetTokenFromContext(c)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -43,24 +61,25 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 		return []byte{}, api.ErrUnauthorized
 	}
 
-	// Connect to DB service and lookup profile info for token.Claims["name"]
-	client := &http.Client{}
-	r := c.Request
-	u, err := url.ParseRequestURI(r.RequestURI)
+	username, err := GetUsernameFromToken(token)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	var username string
-	if username, ok = token.Claims["name"].(string); !ok {
-		return []byte{}, api.ErrTokenItemNotFound
-	}
-
+	// We limit the access to the data owned by the user
 	if c.Param("username") != "" && c.Param("username") != username {
 		return []byte{}, api.ErrUnauthorized
 	}
 
 	jsonusername, err := json.Marshal(username)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	// Connect to DB service and lookup profile info for token.Claims["name"]
+	client := &http.Client{}
+	r := c.Request
+	u, err := url.ParseRequestURI(r.RequestURI)
 	if err != nil {
 		return []byte{}, err
 	}

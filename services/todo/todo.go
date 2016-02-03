@@ -46,8 +46,10 @@ func displayTodo(c *gin.Context) {
 		helper.GenResponse(c, http.StatusBadRequest, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 		return
 	}
-
-	helper.GenResponse(c, http.StatusOK, "todo.tmpl", gin.H{"title": "TODO", "data": todo})
+	// If we're here, we can get these informations already without errors
+	token, _ := helper.GetTokenFromContext(c)
+	username, _ := helper.GetUsernameFromToken(token)
+	helper.GenResponse(c, http.StatusOK, "todo.tmpl", gin.H{"title": "TODO", "data": todo, "username": username})
 }
 
 func main() {

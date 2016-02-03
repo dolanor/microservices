@@ -11,8 +11,13 @@
                 <li>{{.}}</li>
             {{ end }}
             </ul>
+        <br>
         {{ else }}
         <div>This user has no TODO information. Yet.</div>
         {{ end }}
+        <br>
+        <div><a href="/user/{{.username}}">Profile</a>
+        <div><a href="/todo">TODO list</a>
+        <div><a href="/login">Log in</a>
     </body>
 </html>

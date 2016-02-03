@@ -39,9 +39,9 @@ func getUserProfile(c *gin.Context) {
 func main() {
 	r := gin.Default()
 
-	api := r.Group("/api")
-	api.POST("/user/:username", getUserProfile)
-	api.POST("/todo", getUserTodoList)
+	data := r.Group("/data")
+	data.POST("/user/:username", getUserProfile)
+	data.POST("/todo", getUserTodoList)
 
 	r.Run(":8300")
 }

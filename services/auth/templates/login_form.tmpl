@@ -4,11 +4,19 @@
         <title>{{ .title }}</title>
     <head>
     <body>
-        <h1>{{ .title }}</title>
+        <h1>{{ .title }}</h1>
+        {{ with .data }}
+        You're authenticated.
+        {{ else }}
         <form action="/login" method="post">
             <input id="username" type="text" name="username" placeholder="Username"></input>
             <input id="password" type="password" name="password" placeholder="Password"></input>
             <button type="submit">Log in</button>
         </form>
+        {{ end }}
+        <br>
+        <div><a href="/user/{{.username}}">Profile</a>
+        <div><a href="/todo">TODO list</a>
+        <div><a href="/login">Log in</a>
     </body>
 </html>

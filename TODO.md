@@ -7,10 +7,10 @@
 - [x] Create todo service
 - [x] Create data service
 - [x] Factorize server function
-- [ ] Document the API
-- [ ] Create the client
-- [ ] Test the services
-- [ ] Return JSON instead of HTML given client
+- [x] Document the API
+- [x] Create the client
+- [x] Test the services
+- [x] Return JSON instead of HTML given client
 
 # Bonus
 
