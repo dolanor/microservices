@@ -46,6 +46,7 @@ func TestClientCreation(t *testing.T) {
 func TestGetTodo(t *testing.T) {
 	Convey("Given a well configured client", t, func() {
 		mc, _ := createGoodClient()
+		So(mc, ShouldNotEqual, nil)
 		Convey("Sending a request to get the todo list", func() {
 			todo, err := mc.GetTodo()
 			So(err, ShouldEqual, nil)
@@ -57,10 +58,11 @@ func TestGetTodo(t *testing.T) {
 func TestGetUserProfile(t *testing.T) {
 	Convey("Given a well configured client", t, func() {
 		mc, _ := createGoodClient()
+		So(mc, ShouldNotEqual, nil)
 		Convey("Sending a request to get the user profile", func() {
 			userprofile, err := mc.GetUserProfile()
 			So(err, ShouldEqual, nil)
-			So(&user, ShouldResemble, users["dolanor"])
+			So(&userprofile, ShouldResemble, users["dolanor"])
 		})
 	})
 }
