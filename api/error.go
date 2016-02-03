@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	// ErrTokenNotFound indicates when the Token is not found in the cookie store.
-	ErrTokenNotFound = errors.New("Token not found in sessions cookiestore")
+	ErrTokenNotFound = errors.New("Token not found in sessions cookiestore.")
 	// ErrTokenItemNotFound indicates when an item of the token is not available
 	// It could be that somebody tries to forge fake Token if they somehow got
 	// the server.SymmetricKey.
@@ -16,5 +16,11 @@ var (
 	ErrDataNotFound = errors.New("This ressource doesn't exist.")
 	// ErrConnectingEndpoint indicates when an endpoint doesn't answer, is down,
 	// replies unexpectandly
-	ErrConnectingEndpoint = errors.New("There was a problem connecting to the endpoint")
+	ErrConnectingEndpoint = errors.New("There was a problem connecting to the endpoint.")
+
+	// ErrInternalServer indicates when the server couldn't process a request
+	ErrInternalServer = errors.New("The server couldn't process the request.")
+
+	// ErrBadRequest indicates when the client made a mistake
+	ErrBadRequest = errors.New("The client made a bad request.")
 )
