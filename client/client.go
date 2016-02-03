@@ -1,3 +1,7 @@
+// Package client is a client library to access our microservices.
+//
+// Simply import "github.com/dolanor/microservices/client" and you can get
+// UserProfile and Todo list.
 package client
 
 import (
@@ -49,7 +53,7 @@ func (mc *MicroserviceClient) authenticateCredentials(username, password string)
 	form := url.Values{}
 	form.Add("username", username)
 	form.Add("password", password)
-	resp, err := QueryService(mc, "POST", mc.Host+"/login", TypeForm, form)
+	resp, err := queryService(mc, "POST", mc.Host+"/login", typeForm, form)
 	return resp, err
 }
 
@@ -59,7 +63,7 @@ func (mc *MicroserviceClient) GetTodo() (api.Todo, error) {
 
 	url := mc.Host + "/todo"
 
-	r, err := QueryService(mc, "GET", url, TypeJSON, nil)
+	r, err := queryService(mc, "GET", url, typeJSON, nil)
 	if err != nil {
 		return respTodo, err
 	}
@@ -85,7 +89,7 @@ func (mc *MicroserviceClient) GetUserProfile() (api.User, error) {
 
 	url := mc.Host + "/user/" + mc.Username
 
-	r, err := QueryService(mc, "GET", url, TypeJSON, nil)
+	r, err := queryService(mc, "GET", url, typeJSON, nil)
 	if err != nil {
 		return respUser, err
 	}

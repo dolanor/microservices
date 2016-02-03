@@ -11,18 +11,18 @@ import (
 	"strings"
 )
 
-// PostType indicates the type of post data (url-encoded or json).
-type PostType int
+// postType indicates the type of post data (url-encoded or json).
+type postType int
 
 const (
-	// TypeForm is the urlencoded version for POST request.
-	TypeForm PostType = iota
-	// TypeJSON is the JSON version for POST request.
-	TypeJSON
+	// typeForm is the urlencoded version for POST request.
+	typeForm postType = iota
+	// typeJSON is the JSON version for POST request.
+	typeJSON
 )
 
-// QueryService is a helper function that queries the API and handles all the errors in the way.
-func QueryService(client *MicroserviceClient, method, url string, postType PostType, entity interface{}) (*http.Response, error) {
+// queryService is a helper function that queries the API and handles all the errors in the way.
+func queryService(client *MicroserviceClient, method, url string, postType postType, entity interface{}) (*http.Response, error) {
 	req, err := buildRequest(method, url, postType, entity)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func QueryService(client *MicroserviceClient, method, url string, postType PostT
 	return client.Client.Do(req)
 }
 
-func buildRequest(method, url string, postType PostType, entity interface{}) (*http.Request, error) {
+func buildRequest(method, url string, postType postType, entity interface{}) (*http.Request, error) {
 	body, err := marshalEntity(postType, entity)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func buildRequest(method, url string, postType PostType, entity interface{}) (*h
 	// Makes the server reply only json to our client
 	req.Header.Set("Accept", "application/json")
 
-	if postType == TypeJSON {
+	if postType == typeJSON {
 		req.Header.Set("content-type", "application/json")
 	} else {
 		req.Header.Set("content-type", "application/x-www-form-urlencoded")
@@ -52,16 +52,16 @@ func buildRequest(method, url string, postType PostType, entity interface{}) (*h
 	return req, err
 }
 
-func marshalEntity(postType PostType, entity interface{}) (io.Reader, error) {
+func marshalEntity(postType postType, entity interface{}) (io.Reader, error) {
 	if entity == nil {
 		return nil, nil
-	} else if postType == TypeJSON {
+	} else if postType == typeJSON {
 		b, err := json.Marshal(entity)
 		if err != nil {
 			return nil, err
 		}
 		return bytes.NewBuffer(b), nil
-	} else if postType == TypeForm {
+	} else if postType == typeForm {
 		return strings.NewReader(entity.(url.Values).Encode()), nil
 	}
 	return nil, nil
