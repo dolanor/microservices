@@ -29,7 +29,7 @@ func getUserProfile(c *gin.Context) {
 
 	var username string
 	c.BindJSON(&username)
-	if user, ok := users[c.Param("username")]; ok {
+	if user, ok := users[username]; ok {
 		c.JSON(http.StatusOK, user)
 	} else {
 		c.AbortWithStatus(http.StatusNotFound)

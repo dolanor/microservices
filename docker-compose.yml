@@ -1,0 +1,12 @@
+version: 2
+services:
+  router:
+      build: services/router/
+      ports:
+        - "8080:8080"
+  auth:
+      build: services/auth/
+  todo:
+      build: services/todo/
+  data:
+      build: services/data/

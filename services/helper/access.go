@@ -70,7 +70,6 @@ func QueryDataService(c *gin.Context) ([]byte, error) {
 	if c.Param("username") != "" && c.Param("username") != username {
 		return []byte{}, api.ErrUnauthorized
 	}
-
 	jsonusername, err := json.Marshal(username)
 	if err != nil {
 		return []byte{}, err
