@@ -15,7 +15,7 @@
 # Bonus
 
 - [ ] Use Let's Encrypt for https (Caddy?)
-- [ ] Dockerize each service
-- [ ] Compose the docker containers
+- [x] Dockerize each service
+- [x] Compose the docker containers
 - [ ] Use a real storage backend
 - [ ] Use a key by user in the auth module
