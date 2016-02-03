@@ -20,3 +20,13 @@ Then, fire your browser and go to [http://localhost:8080](http://localhost:8080)
 Or alternatively, you could `go test -v ./...`
 
 I used a Makefile to simplify and fasten the development process. If I used a golang:onbuild base image, every code modification would imply a new `go get -v` for all the dependencies. With a local build, it's way faster but could add some more dependency bugs. We should add a PROD Dockerfile for that case.
+
+
+## Docker compose
+
+Docker compose helps you putting all the components together.
+A very nice addition in the context of microservices: scaling.
+
+`docker-compose scale auth=3 todo=2` will create 3 containers for authentication services and 2 for todo services.
+
+It makes scaling your services very simple without the need of a full blown orchestration solution for a simple system. One backward is that it is slow (I tried to scale 20 auth, 10 todo and 10 data, and it took a few minutes to scale and more time to launch.
