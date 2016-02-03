@@ -16,7 +16,7 @@ func displayTodo(c *gin.Context) {
 		switch e := err.(type) {
 		case *jwt.ValidationError:
 			if e.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-				c.Redirect(http.StatusTemporaryRedirect, "/login")
+				helper.GenResponse(c, http.StatusUnauthorized, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 				return
 			}
 		case error:

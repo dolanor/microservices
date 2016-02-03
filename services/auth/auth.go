@@ -78,7 +78,7 @@ func displayProfile(c *gin.Context) {
 		switch e := err.(type) {
 		case *jwt.ValidationError:
 			if e.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-				c.Redirect(http.StatusTemporaryRedirect, "/login")
+				helper.GenResponse(c, http.StatusUnauthorized, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 				return
 			}
 		case error:
