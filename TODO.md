@@ -8,7 +8,9 @@
 - [x] Create data service
 - [x] Factorize server function
 - [ ] Document the API
+- [ ] Create the client
 - [ ] Test the services
+- [ ] Return JSON instead of HTML given client
 
 # Bonus
 
