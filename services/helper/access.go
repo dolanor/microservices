@@ -13,6 +13,18 @@ import (
 	"net/url"
 )
 
+// GenResponse generate the body of the response in HTML or JSON given the Accept header sent by the client.
+// Makes it easier to get JSON without changing the api path.
+func GenResponse(c *gin.Context, httpStatusCode int, template string, ginH map[string]interface{}) {
+	data := ginH["data"]
+
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(httpStatusCode, data)
+		return
+	}
+	c.HTML(httpStatusCode, template, ginH)
+}
+
 // QueryDataService is a helper function to access another microservice endpoint.
 // Currently, works for the DB Accessor. Might be extended for other services.
 func QueryDataService(c *gin.Context) ([]byte, error) {

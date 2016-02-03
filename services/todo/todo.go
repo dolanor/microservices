@@ -22,20 +22,20 @@ func displayTodo(c *gin.Context) {
 		case error:
 			switch err {
 			case api.ErrUnauthorized:
-				c.Redirect(http.StatusTemporaryRedirect, "/login")
+				helper.GenResponse(c, http.StatusUnauthorized, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 				return
 			case api.ErrConnectingEndpoint:
-				c.AbortWithError(http.StatusInternalServerError, err)
+				helper.GenResponse(c, http.StatusServiceUnavailable, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 				return
 			case api.ErrDataNotFound:
-				c.HTML(http.StatusNotFound, "todo.tmpl", gin.H{"title": "TODO", "todo": nil})
+				helper.GenResponse(c, http.StatusNotFound, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 				return
 			default:
-				c.AbortWithError(http.StatusInternalServerError, err)
+				helper.GenResponse(c, http.StatusInternalServerError, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 				return
 			}
 		default:
-			c.AbortWithError(http.StatusInternalServerError, err)
+			helper.GenResponse(c, http.StatusInternalServerError, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 			return
 		}
 	}
@@ -43,18 +43,18 @@ func displayTodo(c *gin.Context) {
 	var todo api.Todo
 	err = json.Unmarshal(data, &todo)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		helper.GenResponse(c, http.StatusBadRequest, "todo.tmpl", gin.H{"title": "TODO", "data": nil})
 		return
 	}
 
-	c.HTML(http.StatusOK, "todo.tmpl", gin.H{"title": "TODO", "todo": todo})
+	helper.GenResponse(c, http.StatusOK, "todo.tmpl", gin.H{"title": "TODO", "data": todo})
 }
 
 func main() {
 	r := gin.Default()
 	store := sessions.NewCookieStore([]byte(helper.Cookiesecret))
 
-	r.Use(sessions.Sessions("tokens", store))
+	r.Use(sessions.Sessions("todo_session", store))
 
 	r.LoadHTMLGlob("templates/*")
 

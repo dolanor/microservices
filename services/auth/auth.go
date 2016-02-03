@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// Login binds the data from an HTML form to gin data binding system
+// Login binds the data from the HTML form to gin data binding system
 type Login struct {
 	Username string `form:"username" binding:"required"`
 	Password string `form:"password" binding:"required"`
@@ -45,7 +45,7 @@ func postLogin(c *gin.Context) {
 		// sign the token
 		tokenString, err := token.SignedString([]byte(helper.SymmetricKey))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			helper.GenResponse(c, http.StatusBadRequest, "login_form.tmpl", gin.H{"title": "Log in"})
 		}
 
 		// save the tokenstring in the cookiestore (maybe use localstorage?)
@@ -54,8 +54,9 @@ func postLogin(c *gin.Context) {
 		session.Save()
 
 		c.Redirect(301, "/user/"+form.Username)
+		helper.GenResponse(c, http.StatusOK, "login_form.tmpl", gin.H{"title": "Log in"})
 	} else {
-		c.Redirect(301, "/login")
+		helper.GenResponse(c, http.StatusUnauthorized, "login_form.tmpl", gin.H{"title": "Log in"})
 	}
 }
 
@@ -84,20 +85,20 @@ func displayProfile(c *gin.Context) {
 		case error:
 			switch err {
 			case api.ErrUnauthorized:
-				c.Redirect(http.StatusTemporaryRedirect, "/login")
+				helper.GenResponse(c, http.StatusUnauthorized, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 				return
 			case api.ErrConnectingEndpoint:
-				c.AbortWithError(http.StatusInternalServerError, err)
+				helper.GenResponse(c, http.StatusServiceUnavailable, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 				return
 			case api.ErrDataNotFound:
-				c.HTML(http.StatusNotFound, "profile.tmpl", gin.H{"title": "Profile", "profile": nil})
+				helper.GenResponse(c, http.StatusNotFound, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 				return
 			default:
-				c.AbortWithError(http.StatusInternalServerError, err)
+				helper.GenResponse(c, http.StatusInternalServerError, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 				return
 			}
 		default:
-			c.AbortWithError(http.StatusInternalServerError, err)
+			helper.GenResponse(c, http.StatusInternalServerError, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 			return
 		}
 	}
@@ -105,18 +106,18 @@ func displayProfile(c *gin.Context) {
 	var profile api.User
 	err = json.Unmarshal(data, &profile)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		helper.GenResponse(c, http.StatusBadRequest, "profile.tmpl", gin.H{"title": "Profile", "data": nil})
 		return
 	}
 
-	c.HTML(http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "profile": profile})
+	helper.GenResponse(c, http.StatusOK, "profile.tmpl", gin.H{"title": "Profile", "data": profile})
 }
 
 func main() {
 	r := gin.Default()
 	store := sessions.NewCookieStore([]byte(helper.Cookiesecret))
 
-	r.Use(sessions.Sessions("tokens", store))
+	r.Use(sessions.Sessions("todo_session", store))
 
 	r.LoadHTMLGlob("templates/*")
 
