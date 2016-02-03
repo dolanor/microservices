@@ -7,5 +7,5 @@ var (
 	Cookiesecret = "cookiesecret"
 	// DataServiceURL is the url to the DB Accessor.
 	// Should be replaced with service discovery.
-	DataServiceURL = "http://localhost:8080/api"
+	DataServiceURL = "http://localhost:8080/data"
 )

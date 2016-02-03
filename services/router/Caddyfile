@@ -8,5 +8,5 @@ root ./static/html/
 proxy /user localhost:8100
 proxy /login localhost:8100
 proxy /todo localhost:8200
-proxy /api localhost:8300
+proxy /data localhost:8300
 
